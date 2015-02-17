@@ -1,0 +1,6 @@
+node Feux_de_voiture(TD, TI, CP: bool) returns (v, c, p: bool);
+let
+  v = (!(false->pre(v) and false->pre(c) and false->pre(p)) and TD) 
+      or (false->pre(c) and TI)
+      or (false->pre(v) and !(TD or TI or CP));
+  c = (false->pre(c) and TD ) || (false)

@@ -1,0 +1,11 @@
+node Portillon(A, B: bool) returns (alarm: bool);
+var opened: bool;
+let
+  alarm = B->(( pre(opened) and A ) or ( not pre(opened) and B ));
+  opened = if A then
+             true
+           else if B then
+                  false
+                else
+                  false->pre(opened);
+tel;

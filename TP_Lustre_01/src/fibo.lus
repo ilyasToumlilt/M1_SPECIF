@@ -1,0 +1,4 @@
+node fibo(n: int) returns(x: int);
+let
+  x = 0->pre(1->(x + pre x));
+tel

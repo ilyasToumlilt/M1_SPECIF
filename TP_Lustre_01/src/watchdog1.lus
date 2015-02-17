@@ -1,0 +1,11 @@
+node WATCHDOG1(set,reset,deadline : bool) returns (alarm: bool);
+var watch_dog_is_on: bool;
+let
+  alarm = watch_dog_is_on and deadline;
+  watch_dog_is_on = if set then
+                      true
+                    else if reset then
+                           false
+                         else
+                           false -> pre watch_dog_is_on;
+tel;
