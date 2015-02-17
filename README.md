@@ -1,0 +1,2 @@
+# M1_SPECIF
+SPECIF - UE M1 S2
