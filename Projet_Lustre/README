@@ -1,0 +1,30 @@
+Projet Lustre - Modélisation et vérification en Lustre
+version 1.0
+
+== Participants : 2 ==
+
+   BITAM Massine  - 3408222 - <massine.bitam@etu.upmc.fr>
+   TOUMLILT Ilyas - 3261538 - <toumlilt.ilyas@gmail.com>
+
+== Fichiers inclus ==
+
+   EXO_1 :
+   -> src/xxx : gvsf ezdsfv
+      	      	dfsgdfsbd
+		      
+
+== Directives de 'makefile' ==
+
+   all : cree tous les executables, sans les éxecuter.
+
+   directories : création des répertoires temporaires s'ils n'existent pas déjà
+   clean : Suppression de tous les fichiers binaires, objet et bibliothèques.
+   cleanall : Suppression des répertoires et fichiers temporaires
+
+== Etat d'avancement ==
+
+   
+
+== Réponses ==
+
+  
