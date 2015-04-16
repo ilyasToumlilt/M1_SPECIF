@@ -1,0 +1,39 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage[top=3cm, bottom=3cm, left=3cm, right=3cm]{geometry}
+\usepackage{graphicx}
+\usepackage{array}
+\usepackage[T1]{fontenc}
+\usepackage{tikz}
+\usepackage{hyperref}
+\usepackage[underline=true,rounded corners=false]{pgf-umlsd}
+\usepackage{listings}
+\usepackage{color}
+
+\title{\textbf{Rapport projet spécif}}
+\author{...\\....\\}
+\begin{document}
+\maketitle
+
+\begin{sequencediagram}
+	\newinst[2]{p}{processeur}
+	\newinst[2]{c}{cache}
+	\newinst[2]{a}{arbitre}
+	\newinst[2]{m}{mémoire}
+	%\begin{call}{p}{ld R1,[0]}{c}{return}
+			
+	%{call}{c}{vide}{a}
+	
+	%{call}{a}{vide}{m}
+	%\end{call}
+	\mess[1]{p}{ld,R1,[0]}{c}
+	\prelevel
+	\mess[1]{c}{gel}{p}
+	\prelevel\prelevel
+	\mess[1]{c}{}{a}
+	\prelevel
+	\mess[1]{a}{Read[0]}{m}
+\end{sequencediagram}
+\end{document}
