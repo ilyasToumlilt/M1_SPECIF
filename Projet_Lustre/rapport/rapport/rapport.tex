@@ -13,27 +13,102 @@
 \usepackage{color}
 
 \title{\textbf{Rapport projet spécif}}
-\author{...\\....\\}
+\author{Ilyas TOUMLILT\\Massine BITAM\\}
 \begin{document}
 \maketitle
-
+\section{Cas 1: Système mono processeur}
 \begin{sequencediagram}
+  
 	\newinst[2]{p}{processeur}
 	\newinst[2]{c}{cache}
 	\newinst[2]{a}{arbitre}
 	\newinst[2]{m}{mémoire}
-	%\begin{call}{p}{ld R1,[0]}{c}{return}
-			
-	%{call}{c}{vide}{a}
 	
-	%{call}{a}{vide}{m}
-	%\end{call}
-	\mess[1]{p}{ld,R1,[0]}{c}
+\begin{sdblock}{Pa1}{}
+	\mess[1]{p}{CPU Read [0]}{c}
 	\prelevel
 	\mess[1]{c}{gel}{p}
 	\prelevel\prelevel
 	\mess[1]{c}{}{a}
 	\prelevel
 	\mess[1]{a}{Read[0]}{m}
+	\prelevel
+	\mess[1]{m}{Data[0]}{a}
+	\prelevel
+	\mess[1]{a}{Data[0]}{c}
+	\prelevel
+	\mess[1]{c}{Data[0]}{p}
+	
+	\begin{callself}{p}{add, R1, R1,1}{}
+	\end{callself}
+	\mess[1]{p}{CPU WR [1]}{c}
+	\prelevel
+	\mess[1]{c}{gel}{p}
+	\prelevel\prelevel
+	\mess[1]{c}{}{a}\prelevel\mess[1]{a}{Write[1]}{m}
+	\mess[1]{m}{}{a}\prelevel\mess[1]{a}{}{c}\prelevel\mess[1]{c}{écriture términé}{p}
+	
+	\mess[1]{p}{CPU Read [0]}{c}
+	\prelevel
+	\mess[1]{c}{Data[0]}{p}
+	\begin{callself}{p}{add, R2, R2}{}
+	\end{callself}
+	
+	\mess[1]{p}{CPU WR [0]}{c}
+	\prelevel
+	\mess[1]{c}{gel}{p}
+	\prelevel\prelevel
+	\mess[1]{c}{}{a}\prelevel\mess[1]{a}{Write[0]}{m}
+	\mess[1]{m}{}{a}\prelevel\mess[1]{a}{}{c}\prelevel\mess[1]{c}{écriture términé}{p}
+\end{sdblock}
 \end{sequencediagram}
+\\Apres eviction du cache voici le diagramme de séquence du programme P1b.\\
+\begin{sequencediagram}
+	\newinst[2]{p}{processeur}
+	\newinst[2]{c}{cache}
+	\newinst[2]{a}{arbitre}
+	\newinst[2]{m}{mémoire}
+	
+\begin{sdblock}{P1b}{}
+	\mess[1]{p}{CPU Read [0]}{c}
+	\prelevel
+	\mess[1]{c}{gel}{p}
+	\prelevel\prelevel
+	\mess[1]{c}{}{a}
+	\prelevel
+	\mess[1]{a}{Read[0]}{m}
+	\prelevel
+	\mess[1]{m}{Data[0]}{a}
+	\prelevel
+	\mess[1]{a}{Data[0]}{c}
+	\prelevel
+	\mess[1]{c}{Data[0]}{p}
+	
+	\mess[1]{p}{CPU Read [1]}{c}
+	\prelevel
+	\mess[1]{c}{gel}{p}
+	\prelevel\prelevel
+	\mess[1]{c}{}{a}
+	\prelevel
+	\mess[1]{a}{Read[1]}{m}
+	\prelevel
+	\mess[1]{m}{Data[1]}{a}
+	\prelevel
+	\mess[1]{a}{Data[1]}{c}
+	\prelevel
+	\mess[1]{c}{Data[1]}{p}
+	
+	\begin{callself}{p}{add, R3, R1,R2}{}
+	\end{callself}
+	\mess[1]{p}{CPU WR [0]}{c}
+	\prelevel
+	\mess[1]{c}{gel}{p}
+	\prelevel\prelevel
+	\mess[1]{c}{}{a}\prelevel\mess[1]{a}{Write[1]}{m}
+	\mess[1]{m}{}{a}\prelevel\mess[1]{a}{}{c}\prelevel\mess[1]{c}{écriture términé}{p}
+	
+\end{sdblock}
+\end{sequencediagram}
+\newpage
+\section{Cas 2: Système multi processeur}
 \end{document}
