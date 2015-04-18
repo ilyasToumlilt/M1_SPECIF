@@ -1,0 +1,169 @@
+-- defines : 
+const NPROCS = 3;
+const NWORDS = 2;
+const BITS   = 1;
+
+-- gnt values
+const NONE = -1;
+const MEM  = 0;
+const CPU1 = 1;
+const CPU2 = 2;
+const CPU3 = 3;
+
+-- nappes du bus :
+const AD    = 0; -- @ du mot a transmettre
+const DT    = 1; -- valeur du mot transmis
+const CTRL  = 2; -- sens du transfert; 0 read; 1 write
+const VALID = 3; -- donnees significatives ?
+
+--------------------------------------------------------------------------------
+-- La memoire est composee de n mots de m bits, adressable par mot.
+-- On suppose dans un premier temps que n=2 et m=1.
+-- La memoire est interfacee dans le bus et agit sur sollicitation de requetes
+-- d'un des deux caches :
+----> READ(ad) : demande de lecture du mot d'adresse ad.
+--    params   : gnt_mem      = true
+--               b_out[CTRL]  = false
+--               b_out[AD]    = ad du mot
+--               b_out[VALID] = true
+--    returns  : b_in[AD]    = b_out[AD]
+--               b_in[DT]    = données demandée
+--               b_in[CTRL]  = b_out[CTRL]
+--               b_in[VALID] = true
+----> WRITE(ad, val) : demande d'écriture de la valeur val à l'adresse ad
+--    params   : gnt_mem      = true
+--               b_out[AD]    = ad du mot
+--               b_out[DT]    = valeur à écrire 
+--               b_out[CTRL]  = true
+--               b_out[VALID] = true
+--    returns  : b_in[AD]    = b_out[AD]
+--               b_in[DT]    = b_out[DT]
+--               b_in[CTRL]  = b_out[CTRL]
+--               b_in[VALID] = b_out[VALID]
+----> Dans tous les autres cas ( cycles d'inactivité on va dire )
+--    returns  : b_in[AD]    = b_out[AD]
+--               b_in[DT]    = b_out[DT]
+--               b_in[CTRL]  = b_out[CTRL]
+--               b_in[VALID] = false
+--------------------------------------------------------------------------------
+node memoire(gnt_mem: bool; b_out: bool^4)
+returns (b_in: bool^4);
+var data: bool^2;
+let
+   data = if (gnt_mem and b_out[CTRL] and b_out[VALID]) then
+            if (b_out[AD]) then
+              [false->pre(data[0]), b_out[DT]]
+            else
+              [b_out[DT], false->pre(data[1])]
+          else
+            [false, false]->pre(data);
+  b_in = if (gnt_mem and not b_out[CTRL] and b_out[VALID]) then
+           if ( b_out[AD] ) then
+             [b_out[AD], data[1], b_out[CTRL], true]
+           else
+             [b_out[AD], data[0], b_out[CTRL], true]
+         else
+           [b_out[AD], b_out[DT], b_out[CTRL], b_out[VALID]];
+tel;
+
+--------------------------------------------------------------------------------
+-- Le processeur exécute des instructions du programme en cours; il emet des
+-- requetes de lecture et ecriture vers son cache prive L1.
+----> params : src            = emetteur de la requete; 0=cmd / 1=cache
+--             proc_in[AD]    = ad du mot
+--             proc_in[DT]    = data a ecrire / lue par cache
+--             proc_in[CTRL]  = 0 for read / 1 for write
+--             proc_in[VALID] = 1 si la commande est significative 
+----> returns : trg             = recepteur; 0=cmd / 1=cache
+--              gel             = si le proc est gelé
+--              proc_out[AD]    = ad du mot
+--              proc_out[DT]    = data
+--              proc_out[CTRL]  = 0 for read / 1 for write
+--              proc_out[VALID] = 1 si la commande est significative
+--------------------------------------------------------------------------------
+node processeur(src: bool; proc_in: bool^4)
+returns (trg: bool; gel: bool; proc_out: bool^4);
+let
+  -- 1. Si le proc est gele; il ne traite pas la commande
+  -- 2. Les commandes non significatives (add; mult .. ) ne nous interessent pas
+  -- 3. Le proc gele s'il recoit une reponse non valide du cache
+  -- 4. Le proc se degele s'il recoit une reponse valide du cache
+  trg = ( not src and proc_in[VALID] );
+  gel = ( src and not proc_in[VALID] ) or ( not src and (false->pre(gel)) );
+  proc_out = [proc_in[AD], proc_in[DT], proc_in[CTRL], proc_in[VALID] or src];
+tel;
+
+--------------------------------------------------------------------------------
+-- Le bus interconnecte la memoire et les caches L1 des processeurs.
+-- son architecture est multiplexee 
+-- le noeud retourne l'entrée du composant abr_gnt, des false sinon.
+--------------------------------------------------------------------------------
+node bus(abr_gnt: int; b_in: bool^16)
+returns (b_out: bool^4);
+let
+  b_out = if (abr_gnt = MEM ) then
+            b_in[0..3]
+          else if (abr_gnt = CPU1 ) then
+                 b_in[4..7]
+               else if (abr_gnt = CPU2 ) then
+                      b_in[8..11]
+                    else if (abr_gnt = CPU3 ) then
+                           b_in[12..15]
+                         else
+                           [false, false, false, false];
+tel;
+
+--------------------------------------------------------------------------------
+-- L'arbitre definit, lorsqu'il y a plusieurs requetes simultanees vers la 
+-- memoire, celle qui a la priorite d'acces sur le bus.
+--------------------------------------------------------------------------------
+node arbitre(l1_req: bool^4)
+returns (arb_gnt: int);
+let
+  arb_gnt = if ( l1_req[MEM] ) then
+              MEM
+            else if ( l1_req[CPU1] ) then
+                   CPU1
+                 else if ( l1_req[CPU2] ) then
+                        CPU2
+                      else if ( l1_req[CPU3] ) then
+                             CPU3
+                           else
+                             NONE;
+tel;
+
+--------------------------------------------------------------------------------
+-- Le cache stocke le mot prealablement demande en lecture par le processeur
+-- auquel il est associe,  jusqu'a ce que ce mot soit mis à jour ou evince.
+-- on suppose que le cache ne peut contenir qu'un seul mot a la fois
+--------------------------------------------------------------------------------
+node cache(arb_gnt: bool; l1_in: bool^4; b_out: bool^4)
+returns (req: bool; gel: bool; l1_out: bool^4; b_in: bool^4);
+var word: bool; adr: bool; init: bool;
+let
+  gel = (l1_in[VALID]) and ((not init) or (l1_in[AD] and not adr) or (not l1_in[AD] and adr));
+  req = gel or (l1_in[VALID] and l1_in[CTRL]);
+  word = if (l1_in[VALID] and l1_in[CTRL] ) then
+           l1_in[DT]
+         else if (arb_gnt and b_out[VALID] and not b_out[CTRL]) then
+                b_out[DT]
+              else
+                false->pre(word);
+  adr = if (l1_in[VALID] and l1_in[CTRL] ) then
+          l1_in[AD]
+        else if (arb_gnt and b_out[VALID] and not b_out[CTRL]) then
+               b_out[AD]
+             else
+               false->pre(word);
+  init = (b_out[VALID]) or (false->pre(init));
+  l1_out = if (l1_in[VALID] and not gel ) then
+             [adr, word, l1_in[CTRL], true]
+           else if (arb_gnt and b_out[VALID]) then
+                  b_out
+                else
+                  [false, false, false, false];
+  b_in = if (arb_gnt and gel) then
+           l1_in
+         else
+           [false, false, false, false];
+tel;

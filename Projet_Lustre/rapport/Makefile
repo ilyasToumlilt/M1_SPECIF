@@ -3,7 +3,8 @@ PDF = $(addsuffix .pdf, $(basename $(RAPPORT)))
 TOC = $(addsuffix .toc, $(basename $(RAPPORT)))
 LOG = $(addsuffix .log, $(basename $(RAPPORT)))
 AUX = $(addsuffix .aux, $(basename $(RAPPORT)))
-TMP = $(TOC) $(LOG) $(AUX)
+OUT = $(addsuffix .out, $(basename $(RAPPORT)))
+TMP = $(TOC) $(LOG) $(AUX) $(OUT)
 
 $(PDF) : $(RAPPORT)
 	pdflatex $^
@@ -12,4 +13,4 @@ $(PDF) : $(RAPPORT)
 	evince $@
 
 clean :
-	rm -f $(PDF) $(LOG) $(AUX)
+	rm -f $(PDF) $(LOG) $(AUX) $(OUT)

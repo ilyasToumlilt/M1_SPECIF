@@ -9,22 +9,10 @@ version 1.0
 == Fichiers inclus ==
 
    EXO_1 :
-   -> src/xxx : gvsf ezdsfv
-      	      	dfsgdfsbd
+   -> src/prog.lus : le code source du projet
+   -> rapport/rapport.tex : sources latex du rapport
+   -> rapport/Makefile : fichier make pour production du pdf
+   -> rapport/rapport.pdf : rapport version pdf 
 		      
-
-== Directives de 'makefile' ==
-
-   all : cree tous les executables, sans les éxecuter.
-
-   directories : création des répertoires temporaires s'ils n'existent pas déjà
-   clean : Suppression de tous les fichiers binaires, objet et bibliothèques.
-   cleanall : Suppression des répertoires et fichiers temporaires
-
-== Etat d'avancement ==
-
-   
-
-== Réponses ==
 
   
